@@ -6,7 +6,7 @@ const k = 8.99e9 // Constante de Coulomb en N·m²/C²
 
 // Valores de las cargas y sus posiciones
 let q1 = 1e-6 // 1 microcoulomb
-let r1 = [-2, 0, 0] // Posición de la primera carga
+let r1 = [0, 0, 0] // Posición de la primera carga
 let q2 = -1e-6 // -1 microcoulomb
 let r2 = [2, 0, 0] // Posición de la segunda carga
 
@@ -15,8 +15,9 @@ let cargas = [
   [q2, r2],
 ]
 
-let numPuntos = 18
-let numAngulos = 12
+let numPuntos = 5
+let numAngulos = 5
+let numFlechas = 5
 
 let COLORS = {
   carga1: 0x0000ff,
@@ -176,6 +177,24 @@ function generarTrayectorias3D(lineasCampo2D, eje, numAngulos = 12) {
   return trayectorias3D;
 }
 
+// Función para agregar flechas a la trayectoria
+function addArrowsToTrajectory(trayectoria, color, numFlechas) {
+  const arrowSize = 0.4;
+  const arrowHelperObjects = [];
+  const interval = Math.floor(trayectoria.length / numFlechas);
+
+  for (let i = 0; i < trayectoria.length - 1 && arrowHelperObjects.length < numFlechas; i += interval) {
+    const startPoint = new THREE.Vector3(...trayectoria[i]);
+    const endPoint = new THREE.Vector3(...trayectoria[i + 1]);
+    const direction = new THREE.Vector3().subVectors(endPoint, startPoint).normalize();
+
+    const arrowHelper = new THREE.ArrowHelper(direction, startPoint, arrowSize, color);
+    arrowHelperObjects.push(arrowHelper);
+  }
+
+  return arrowHelperObjects;
+}
+
 function updateScene() {
   // Limpiar la escena
   while (scene.children.length > 0) {
@@ -220,14 +239,13 @@ function updateScene() {
   // Generar trayectorias en 3D
   const trayectorias3D = generarTrayectorias3D(lineasCampo2D, ejeRotacion, numAngulos);
 
-  // Crear curvas usando la función createCurve
-  const curvas = trayectorias3D .map((controlPoints) =>
-    createCurve(COLORS.curves, controlPoints)
-  )
+  // Crear curvas usando la función createCurve y agregar flechas
+  for (const controlPoints of trayectorias3D) {
+    const curva = createCurve(COLORS.curves, controlPoints);
+    scene.add(curva);
 
-  // Agregar las curvas a la escena de Three.js (suponiendo que tienes una escena)
-  for (const curva of curvas) {
-    scene.add(curva)
+    const arrowHelpers = addArrowsToTrajectory(controlPoints, COLORS.curves, numFlechas);
+    arrowHelpers.forEach(arrowHelper => scene.add(arrowHelper));
   }
 }
 
@@ -274,8 +292,6 @@ configForm.addEventListener('submit', (event) => {
 
   // Actualizar cargas y posiciones
   q1 = parseFloat(document.getElementById('q1').value);
-  r1[0] = parseFloat(document.getElementById('r1x').value)
-  r1[1] = parseFloat(document.getElementById('r1y').value)
   q2 = parseFloat(document.getElementById('q2').value);
   r2[0] = parseFloat(document.getElementById('r2x').value)
   r2[1] = parseFloat(document.getElementById('r2y').value)
@@ -287,6 +303,7 @@ configForm.addEventListener('submit', (event) => {
   // Actualizar número de puntos y ángulos
   numPuntos = parseInt(document.getElementById('numPuntos').value);
   numAngulos = parseInt(document.getElementById('numAngulos').value);
+  numFlechas = parseInt(document.getElementById('numFlechas').value);
 
   // Actualizar la escena
   updateScene();
