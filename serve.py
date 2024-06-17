@@ -5,7 +5,8 @@ import time
 import os
 
 PORT = 8000
-DIRECTORY = "dist"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DIRECTORY = os.path.join(SCRIPT_DIR, "dist")
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):

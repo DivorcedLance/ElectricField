@@ -66,20 +66,34 @@ function createCurve(color, controlPoints) {
 
 // Función para calcular el campo eléctrico en un punto dado por varias cargas
 function calcularCampo(punto, cargas) {
-  let campo = [0, 0]
+  // Inicializar el campo eléctrico en el punto como un vector de dos componentes [Ex, Ey]
+  let campo = [0, 0];
+
+  // Iterar sobre cada carga en la lista de cargas
   for (const carga of cargas) {
-    const [q, r] = carga
-    const [x, y] = punto
-    const [rx, ry] = r
-    const dx = x - rx
-    const dy = y - ry
-    const r2 = dx * dx + dy * dy
-    const r3 = Math.sqrt(r2) * r2
-    const coef = (k * q) / r3
-    campo[0] += coef * dx
-    campo[1] += coef * dy
+    // Descomponer la carga en su magnitud q y su posición [rx, ry]
+    const [q, r] = carga;
+    const [x, y] = punto;
+    const [rx, ry] = r;
+
+    // Calcular las diferencias de posición entre el punto y la carga
+    const dx = x - rx;
+    const dy = y - ry;
+
+    // Calcular la distancia al cuadrado entre el punto y la carga
+    const r2 = dx * dx + dy * dy;
+
+    // r3 = (r^2)^(3/2)
+    const r3 = Math.pow(r2, 1.5);
+    const coef = (k * q) / r3;
+
+    // Calcular las componentes del campo eléctrico y sumarlas al campo total
+    campo[0] += coef * dx;
+    campo[1] += coef * dy;
   }
-  return campo
+
+  // Devolver el campo eléctrico total en el punto
+  return campo;
 }
 
 // Función para calcular la trayectoria de una línea de campo en una dirección
