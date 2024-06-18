@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - ft-3duvectors
 
 jobs:
   build:
