@@ -119,6 +119,7 @@ function calcularTrayectoria(
     
     // Detener si el punto está muy cerca de una carga
     const cargaObjetivo = direccion === 1 ? cargas[1] : cargas[0]
+
     const [q, r] = cargaObjetivo
     const dx = punto[0] - r[0]
     const dy = punto[1] - r[1]
@@ -158,7 +159,7 @@ function calcularLineasCampo2D(
       ...trayectoriaAdelante.slice(1),
     ])
   }
-
+  console.log(lineasCampo)
   return lineasCampo
 }
 
