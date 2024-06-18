@@ -1,0 +1,112 @@
+// Place your key bindings in this file to override the defaults
+[
+    {
+      "key": "alt+enter",
+      "command": "workbench.action.terminal.runActiveFile"
+    },
+    {
+      "key": "ctrl+n",
+      "command": "explorer.newFile"
+    },
+    {
+      "key": "ctrl+shift+n",
+      "command": "explorer.newFolder"
+    },
+    {
+      "key": "ctrl+alt+q",
+      "command": "python.execInTerminal",
+      "when": "resourceExtname == .py"
+    },
+    {
+      "key": "ctrl+shift+tab",
+      "command": "workbench.action.previousEditorInGroup"
+    },
+    {
+      "key": "ctrl+k ctrl+pageup",
+      "command": "-workbench.action.previousEditorInGroup"
+    },
+    {
+      "key": "ctrl+shift+tab",
+      "command": "-workbench.action.quickOpenNavigatePreviousInEditorPicker",
+      "when": "inEditorsPicker && inQuickOpen"
+    },
+    {
+      "key": "ctrl+shift+tab",
+      "command": "-workbench.action.quickOpenLeastRecentlyUsedEditorInGroup",
+      "when": "!activeEditorGroupEmpty"
+    },
+    {
+      "key": "ctrl+tab",
+      "command": "workbench.action.nextEditorInGroup"
+    },
+    {
+      "key": "ctrl+k ctrl+pagedown",
+      "command": "-workbench.action.nextEditorInGroup"
+    },
+    {
+      "key": "ctrl+tab",
+      "command": "-workbench.action.quickOpenNavigateNextInEditorPicker",
+      "when": "inEditorsPicker && inQuickOpen"
+    },
+    {
+      "key": "ctrl+tab",
+      "command": "-workbench.action.quickOpenPreviousRecentlyUsedEditorInGroup",
+      "when": "!activeEditorGroupEmpty"
+    },
+    {
+      "key": "ctrl+alt+q",
+      "command": "C_Cpp.BuildAndRunFile",
+      "when": "resourceExtname == .cpp"
+    },
+    {
+      "key": "alt+a",
+      "command": "github.copilot.generate",
+      "when": "editorTextFocus && github.copilot.activated"
+    },
+    {
+      "key": "ctrl+enter",
+      "command": "-github.copilot.generate",
+      "when": "editorTextFocus && github.copilot.activated"
+    },
+    {
+      "key": "ctrl+shift+a",
+      "command": "workbench.view.extension.copilot-labs"
+    },
+    {
+      "key": "ctrl+enter",
+      "command": "-github.copilot.generate",
+      "when": "editorTextFocus && github.copilot.activated && !inInteractiveInput && !interactiveEditorFocused"
+    },
+    {
+      "key": "alt+x",
+      "command": "workbench.action.terminal.killAll"
+    },
+    {
+      "key": "alt+x",
+      "command": "workbench.action.terminal.kill"
+    },
+    {
+      "key": "alt+q",
+      "command": "workbench.action.terminal.focus",
+      "when": "!terminalFocus"
+    },
+    {
+      "key": "alt+q",
+      "command": "workbench.action.focusActiveEditorGroup",
+      "when": "terminalFocus"
+    },
+    {
+      "key": "alt+d",
+      "command": "editor.action.deleteLines",
+      "when": "textInputFocus && !editorReadonly"
+    },
+    {
+      "key": "ctrl+shift+k",
+      "command": "-editor.action.deleteLines",
+      "when": "textInputFocus && !editorReadonly"
+    },
+    {
+      "key": "shift+alt+e",
+      "command": "workbench.panel.chat.view.copilot.focus"
+    }
+  ]

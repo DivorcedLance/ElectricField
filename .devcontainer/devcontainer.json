@@ -1,0 +1,82 @@
+{
+    "name": "WebDev Container",
+    "image":"mcr.microsoft.com/devcontainers/universal:2",
+    "forwardPorts": [5173],
+    "postCreateCommand": "npm install",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "GitHub.copilot",
+                "esbenp.prettier-vscode",
+                "drewxs.tokyo-night-dark",
+                "dbaeumer.vscode-eslint",
+                "dsznajder.es7-react-js-snippets",
+                "usernamehw.errorlens",
+                "aaron-bond.better-comments",
+                "donjayamanne.githistory",
+                "eamodio.gitlens",
+                "ecmel.vscode-html-css",
+                "kisstkondoros.vscode-gutter-preview",
+                "YoavBls.pretty-ts-errors",
+                "qwtel.sqlite-viewer",
+                "SimonSiefke.svg-preview",
+                "bradlc.vscode-tailwindcss",
+                "rangav.vscode-thunder-client",
+                "PKief.material-icon-theme",
+                "prisma.prisma",
+                "pnp.polacode",
+                "shd101wyy.markdown-preview-enhanced",
+                "astro-build.astro-vscode",
+                "fabiospampinato.vscode-open-in-github"
+            ],
+            "settings": {
+                "editor.rulers": [79],
+                "editor.tabSize": 2,
+                "editor.wordWrap": "on",
+                "emmet.includeLanguages": {
+                  "javascript": "javascriptreact"
+                },
+                "explorer.compactFolders": false,
+                "explorer.confirmDelete": false,
+                "prettier.singleQuote": true,
+                "workbench.colorTheme": "Tokyo Night Dark",
+                "workbench.iconTheme": "material-icon-theme",
+                "workbench.settings.editor": "json",
+                "workbench.settings.useSplitJSON": true,
+                "[javascript]": {
+                  "editor.defaultFormatter": "esbenp.prettier-vscode"
+                },
+                "[javascriptreact]": {
+                  "editor.defaultFormatter": "esbenp.prettier-vscode"
+                },
+                "javascript.updateImportsOnFileMove.enabled": "always",
+                "workbench.colorCustomizations": {
+                    "[Tokyo Night Dark]": {
+                      "editor.lineHighlightBackground": "#0a0a0d",
+                      // "editor.wordHighlightBackground": "#0a0a0d",
+                      "editor.wordHighlightBorder": "#a9b1d6",
+                      "editor.selectionBackground": "#3d59a1aa",
+                      // "editor.selectionHighlightBackground": "#eb0cd1fb",
+                      "editor.selectionHighlightBorder": "#e0af68"
+                    },
+
+                    // "editorRuler.foreground": "#0474bc",
+                    "statusBar.background": "#1A1A1A",
+                    "statusBar.noFolderBackground": "#212121",
+                    "statusBar.debuggingBackground": "#263238"
+                },
+                "workbench.editorAssociations": {
+                  "*.dat": "default",
+                  "*.db": "sqlite-viewer.option"
+                },
+                "[typescriptreact]": {
+                  "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+                },
+                "[typescript]": {
+                  "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+                },
+                "standard.engine": "ts-standard"
+            }
+        }
+    }
+}
