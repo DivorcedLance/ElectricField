@@ -9,15 +9,18 @@ let q1 = 1e-6 // 1 microcoulomb
 let r1 = [0, 0, 0] // Posición de la primera carga
 let q2 = -1e-6 // -1 microcoulomb
 let r2 = [2, 0, 0] // Posición de la segunda carga
+let r3 = [0, 2, 0] // Posición de la tercera carga
+let q3 = 1e-6 // 1 microcoulomb
 
 let cargas = [
   [q1, r1],
   [q2, r2],
+  // [q3, r3]
 ]
 
-let numPuntos = 5
-let numAngulos = 5
-let numFlechas = 5
+let numLineas2D = 5
+let numPlanos = 1
+let numFlechas = 0
 
 let COLORS = {
   carga1: 0x0000ff,
@@ -96,18 +99,27 @@ function calcularCampo(punto, cargas) {
   return campo;
 }
 
+function distancia(p1, p2) {
+  const dx = p1[0] - p2[0]
+  const dy = p1[1] - p2[1]
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
 // Función para calcular la trayectoria de una línea de campo en una dirección
 function calcularTrayectoria(
   puntoInicial,
   cargas,
   direccion = 1,
+  cargaOrigen,
   paso = 0.01,
-  maxIteraciones = 1000
+  maxIteraciones = 1000,
 ) {
   let trayectoria = [puntoInicial]
   let punto = puntoInicial
 
-  for (let i = 0; i < maxIteraciones; i++) {
+  const yaAlcanzados = [cargaOrigen]
+
+  for (let _ = 0; _ < maxIteraciones; _++) {
     const campo = calcularCampo(punto, cargas)
     const magnitud = Math.sqrt(campo[0] * campo[0] + campo[1] * campo[1])
     const pasoNormalizado = [
@@ -116,17 +128,21 @@ function calcularTrayectoria(
     ]
     punto = [punto[0] + pasoNormalizado[0], punto[1] + pasoNormalizado[1]]
     trayectoria.push(punto)
-    
-    // Detener si el punto está muy cerca de una carga
-    const cargaObjetivo = direccion === 1 ? cargas[1] : cargas[0]
 
-    const [q, r] = cargaObjetivo
-    const dx = punto[0] - r[0]
-    const dy = punto[1] - r[1]
-    if (Math.sqrt(dx * dx + dy * dy) < paso) {
-      return trayectoria
+    for (let j = 0; j < cargas.length; j++) {
+      if (yaAlcanzados.includes(j)) {
+        continue
+      }
+      const carga = cargas[j]
+      if (distancia(punto, carga[1]) < paso) {
+        yaAlcanzados.push(j)
+        if (yaAlcanzados.length === cargas.length) {
+          return trayectoria
+        }
+      }
     }
   }
+
   return trayectoria
 }
 
@@ -134,32 +150,24 @@ function calcularTrayectoria(
 function calcularLineasCampo2D(
   cargas,
   puntosIniciales,
+  cargaOrigen,
   paso = 0.01,
-  maxIteraciones = 8000
+  maxIteraciones = 1000
 ) {
   const lineasCampo = []
+  const direccion = cargas[cargaOrigen][0] > 0 ? 1 : -1
 
   for (const puntoInicial of puntosIniciales) {
-    const trayectoriaAdelante = calcularTrayectoria(
+    const trayectoria = calcularTrayectoria(
       puntoInicial,
       cargas,
-      1,
+      direccion,
+      cargaOrigen,
       paso,
       maxIteraciones
     )
-    const trayectoriaAtras = calcularTrayectoria(
-      puntoInicial,
-      cargas,
-      -1,
-      paso,
-      maxIteraciones
-    )
-    lineasCampo.push([
-      ...trayectoriaAtras.reverse(),
-      ...trayectoriaAdelante.slice(1),
-    ])
+    lineasCampo.push(trayectoria)
   }
-  console.log(lineasCampo)
   return lineasCampo
 }
 
@@ -182,11 +190,11 @@ function rotarPuntoAlrededorEje(punto, eje, angulo) {
 function generarTrayectorias3D(lineasCampo2D, eje, numAngulos = 12) {
   const trayectorias3D = [];
   for (const trayectoria2D of lineasCampo2D) {
-      for (let i = 0; i < numAngulos; i++) {
-          const angulo = (i / numAngulos) * 2 * Math.PI;
-          const trayectoria3D = trayectoria2D.map(punto => rotarPuntoAlrededorEje([punto[0], punto[1], 0], eje, angulo));
-          trayectorias3D.push(trayectoria3D);
-      }
+    for (let i = 0; i < numAngulos; i++) {
+      const angulo = (i / numAngulos) * 2 * Math.PI;
+      const trayectoria3D = trayectoria2D.map(punto => rotarPuntoAlrededorEje([punto[0], punto[1], 0], eje, angulo));
+      trayectorias3D.push(trayectoria3D);
+    }
   }
 
   return trayectorias3D;
@@ -217,30 +225,33 @@ function updateScene() {
   }
 
   // Crear esferas para representar las cargas
-  createSphere(COLORS.carga1, r1, 0.15)
-  createSphere(COLORS.carga2, r2, 0.15)
+  // createSphere(COLORS.carga1, r1, 0.15)
+  // createSphere(COLORS.carga2, r2, 0.15)
+  // createSphere(COLORS.carga2, r3, 0.15)
 
-  // Puntos iniciales en un círculo alrededor de ambas cargas
-  const puntosIniciales = []
+  const lineasCampo2D = []
+  // Puntos iniciales en un círculo alrededor de las cargas
   const radio = 0.1
+  for (let j = 0; j < cargas.length; j++) {
+    const puntosIniciales = []
+    for (let i = 0; i < numLineas2D; i++) {
+      const angulo = (i / numLineas2D) * 2 * Math.PI
+      puntosIniciales.push([
+        cargas[j][1][0] + radio * Math.cos(angulo),
+        cargas[j][1][1] + radio * Math.sin(angulo),
+      ])
+    }
 
-  // Puntos alrededor de la primera carga
-  for (let i = 0; i < numPuntos; i++) {
-    const angulo = (i / numPuntos) * 2 * Math.PI
-    puntosIniciales.push([
-      r1[0] + radio * Math.cos(angulo),
-      r1[1] + radio * Math.sin(angulo),
-    ])
+
+    // Graficar puntos iniciales
+    for (const punto of puntosIniciales) {
+      createSphere(0xffffff, punto, 0.01)
+    }
+
+    lineasCampo2D.push(...calcularLineasCampo2D(cargas, puntosIniciales, j))
   }
 
-  // Puntos alrededor de la segunda carga
-  for (let i = 0; i < numPuntos; i++) {
-    const angulo = (i / numPuntos) * 2 * Math.PI
-    puntosIniciales.push([
-      r2[0] + radio * Math.cos(angulo),
-      r2[1] + radio * Math.sin(angulo),
-    ])
-  }
+
 
   // Eje de rotación (normalizado)
   const dx = r2[0] - r1[0];
@@ -249,10 +260,9 @@ function updateScene() {
   const longitudEje = Math.sqrt(dx * dx + dy * dy + dz * dz);
   const ejeRotacion = [dx / longitudEje, dy / longitudEje, dz / longitudEje];
 
-  const lineasCampo2D  = calcularLineasCampo2D(cargas, puntosIniciales)
 
   // Generar trayectorias en 3D
-  const trayectorias3D = generarTrayectorias3D(lineasCampo2D, ejeRotacion, numAngulos);
+  const trayectorias3D = generarTrayectorias3D(lineasCampo2D, ejeRotacion, numPlanos);
 
   // Crear curvas usando la función createCurve y agregar flechas
   for (const controlPoints of trayectorias3D) {
@@ -316,13 +326,19 @@ configForm.addEventListener('submit', (event) => {
   ];
 
   // Actualizar número de puntos y ángulos
-  numPuntos = parseInt(document.getElementById('numPuntos').value);
-  numAngulos = parseInt(document.getElementById('numAngulos').value);
+  numLineas2D = parseInt(document.getElementById('numLineas2D').value);
+  numPlanos = parseInt(document.getElementById('numPlanos').value);
   numFlechas = parseInt(document.getElementById('numFlechas').value);
 
   // Actualizar la escena
   updateScene();
 });
+
+const showFormBtn = document.getElementById('showFormBtn')
+showFormBtn.addEventListener('click', () => {
+  configForm.style.display = configForm.style.display === 'none' ? 'block' : 'none';
+  showFormBtn.textContent = configForm.style.display === 'none' ? 'Mostrar formulario' : 'Ocultar formulario';
+})
 
 // Inicializar la escena con los valores iniciales
 updateScene();
