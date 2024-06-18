@@ -10,12 +10,18 @@ let r1 = [0, 0, 0] // Posición de la primera carga
 let q2 = -1e-6 // -1 microcoulomb
 let r2 = [2, 0, 0] // Posición de la segunda carga
 let r3 = [0, 2, 0] // Posición de la tercera carga
-let q3 = 1e-6 // 1 microcoulomb
+let q3 = -1e-6 // 1 microcoulomb
+let r4 = [2, 2, 0] // Posición de la cuarta carga
+let q4 = 1e-6 // -1 microcoulomb
+let r5 = [1, 1, 0] // Posición de la quinta carga
+let q5 = -1e-6 // 1 microcoulomb
 
 let cargas = [
   [q1, r1],
   [q2, r2],
-  // [q3, r3]
+  // [q3, r3],
+  // [q4, r4],
+  // [q5, r5],
 ]
 
 let numLineas2D = 5
@@ -42,11 +48,11 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-function createSphere(color, position, radius) {
+function createSphere(cargaNum, radius) {
   const geometry = new THREE.SphereGeometry(radius, 32, 32)
-  const material = new THREE.MeshBasicMaterial({ color: color })
+  const material = new THREE.MeshBasicMaterial({ color: cargas[cargaNum][0] > 0 ? COLORS.carga1 : COLORS.carga2})
   const sphere = new THREE.Mesh(geometry, material)
-  sphere.position.set(...position)
+  sphere.position.set(...cargas[cargaNum][1])
   scene.add(sphere)
 }
 
@@ -225,9 +231,9 @@ function updateScene() {
   }
 
   // Crear esferas para representar las cargas
-  // createSphere(COLORS.carga1, r1, 0.15)
-  // createSphere(COLORS.carga2, r2, 0.15)
-  // createSphere(COLORS.carga2, r3, 0.15)
+  for (let i = 0; i < cargas.length; i++) {
+    createSphere(i, 0.15)
+  }
 
   const lineasCampo2D = []
   // Puntos iniciales en un círculo alrededor de las cargas
@@ -244,9 +250,9 @@ function updateScene() {
 
 
     // Graficar puntos iniciales
-    for (const punto of puntosIniciales) {
-      createSphere(0xffffff, punto, 0.01)
-    }
+    // for (const punto of puntosIniciales) {
+    //   createSphere(0xffffff, punto, 0.01)
+    // }
 
     lineasCampo2D.push(...calcularLineasCampo2D(cargas, puntosIniciales, j))
   }
