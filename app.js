@@ -26,6 +26,20 @@ let COLORS = {
   curves: 0x00ff00,
 }
 
+const COLORS_LIST = [
+  0x0000ff,
+  0xff0000,
+  0x00ff00,
+  0xffff00,
+  0xff00ff,
+  0x00ffff,
+  0xff8000,
+  0x8000ff,
+  0x00ff80,
+  0x80ff00,
+  0xff0080,
+]
+
 // Escena, cámara y renderizador
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(
@@ -247,8 +261,9 @@ function updateScene() {
   for (let i = 0; i < lineasCampo3D.length; i++) {
     const controlPointsList = lineasCampo3D[i][0];
     const direccion = lineasCampo3D[i][1];
+    const color = COLORS_LIST[i % COLORS_LIST.length];
     for (const controlPoints of controlPointsList) {
-      const curva = createCurve(COLORS.curves, controlPoints);
+      const curva = createCurve(color, controlPoints);
       scene.add(curva);
 
       const arrowHelpers = addArrowsToTrajectory(controlPoints, COLORS.curves, numFlechas, direccion);
