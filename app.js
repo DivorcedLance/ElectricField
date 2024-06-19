@@ -5,28 +5,20 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 const k = 8.99e9 // Constante de Coulomb en N·m²/C²
 
 // Valores de las cargas y sus posiciones
-let q1 = 1e-6 // 1 microcoulomb
-let r1 = [0, 0, 0] // Posición de la primera carga
-let q2 = -1e-6 // -1 microcoulomb
-let r2 = [2, 0, 0] // Posición de la segunda carga
-let r3 = [0, 2, 2] // Posición de la tercera carga
-let q3 = -1e-6 // 1 microcoulomb
-let r4 = [2, 2, 6] // Posición de la cuarta carga
-let q4 = 1e-6 // -1 microcoulomb
-let r5 = [1, 1, -1] // Posición de la quinta carga
-let q5 = -1e-6 // 1 microcoulomb
 
 let cargas = [
-  [q1, r1],
-  [q2, r2],
-  [q3, r3],
-  [q4, r4],
-  [q5, r5],
+  [1e-6, [0, 0, 0]],
+  [-1e-6, [2, 0, 0]],
+  [-1e-6, [0, 2, 2]],
+  [1e-6, [2, 2, 6]],
+  [-1e-6, [1, 1, -1]],
+  [1e-6, [1, 1, 1]],
+  [-1e-6, [1, 1, 3]],
 ]
 
 let numPuntos2D = 6
 let numPlanos = 6
-let numFlechas = 3
+let numFlechas = 0
 
 let COLORS = {
   carga1: 0x0000ff,
@@ -61,7 +53,7 @@ function createCharge(cargaNum, radius) {
   const position = cargas[cargaNum][1]
   createSphere(position, radius, color)
 }
-  
+
 
 // Función para crear una curva
 function createCurve(color, controlPoints) {
@@ -193,18 +185,24 @@ function calcularLineasCampo3D(
 }
 
 // Función para agregar flechas a la trayectoria
-function addArrowsToTrajectory(trayectoria, color, numFlechas) {
-  const arrowSize = 0.4;
+function addArrowsToTrajectory(trayectoria, color, numFlechas, direccion) {
+  const arrowSize = 0.2;
+  const headLength = 0.2;
+  const headWidth = 0.1;
   const arrowHelperObjects = [];
-  const interval = Math.floor(trayectoria.length / numFlechas);
+  const interval = Math.floor(trayectoria.length / numFlechas + 1);
 
-  for (let i = 0; i < trayectoria.length - 1 && arrowHelperObjects.length < numFlechas; i += interval) {
+  for (let i = interval; i < trayectoria.length - 1 && arrowHelperObjects.length < numFlechas; i += interval) {
     const startPoint = new THREE.Vector3(...trayectoria[i]);
     const endPoint = new THREE.Vector3(...trayectoria[i + 1]);
-    const direction = new THREE.Vector3().subVectors(endPoint, startPoint).normalize();
-
-    const arrowHelper = new THREE.ArrowHelper(direction, startPoint, arrowSize, color);
-    arrowHelperObjects.push(arrowHelper);
+    const direction = new THREE.Vector3().subVectors(
+      direccion == 1 ? endPoint : startPoint,
+      direccion == 1 ? startPoint : endPoint
+    ).normalize();
+    if (numFlechas !== 0) {
+      const arrowHelper = new THREE.ArrowHelper(direction, startPoint, arrowSize, color, headLength, headWidth);
+      arrowHelperObjects.push(arrowHelper);
+    }
   }
 
   return arrowHelperObjects;
@@ -242,16 +240,20 @@ function updateScene() {
       createSphere(punto, 0.01, 0xffffff)
     }
 
-    lineasCampo3D.push(...calcularLineasCampo3D(cargas, puntosIniciales, j))
+    lineasCampo3D.push([calcularLineasCampo3D(cargas, puntosIniciales, j), cargas[j][0] > 0 ? 1 : -1])
   }
 
   // Crear curvas usando la función createCurve y agregar flechas
-  for (const controlPoints of lineasCampo3D) {
-    const curva = createCurve(COLORS.curves, controlPoints);
-    scene.add(curva);
+  for (let i = 0; i < lineasCampo3D.length; i++) {
+    const controlPointsList = lineasCampo3D[i][0];
+    const direccion = lineasCampo3D[i][1];
+    for (const controlPoints of controlPointsList) {
+      const curva = createCurve(COLORS.curves, controlPoints);
+      scene.add(curva);
 
-    const arrowHelpers = addArrowsToTrajectory(controlPoints, COLORS.curves, numFlechas);
-    arrowHelpers.forEach(arrowHelper => scene.add(arrowHelper));
+      const arrowHelpers = addArrowsToTrajectory(controlPoints, COLORS.curves, numFlechas, direccion);
+      arrowHelpers.forEach(arrowHelper => scene.add(arrowHelper));
+    }
   }
 }
 
@@ -297,17 +299,9 @@ configForm.addEventListener('submit', (event) => {
   COLORS.curves = parseInt(document.getElementById('curvesColor').value.substring(1), 16);
 
   // Actualizar cargas y posiciones
-  q1 = parseFloat(document.getElementById('q1').value);
-  q2 = parseFloat(document.getElementById('q2').value);
-  r2[0] = parseFloat(document.getElementById('r2x').value)
-  r2[1] = parseFloat(document.getElementById('r2y').value)
-  cargas = [
-    [q1, r1],
-    [q2, r2]
-  ];
 
   // Actualizar número de puntos y ángulos
-  numPuntos2D = parseInt(document.getElementById('numLineas2D').value);
+  numPuntos2D = parseInt(document.getElementById('numPuntos2D').value);
   numPlanos = parseInt(document.getElementById('numPlanos').value);
   numFlechas = parseInt(document.getElementById('numFlechas').value);
 
