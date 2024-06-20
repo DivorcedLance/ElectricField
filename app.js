@@ -349,7 +349,7 @@ function updateCharge(chargeID) {
 }
 
 const chargeInputsContainer = document.getElementById('chargeInputsContainer')
-const addCharge = (value = 1e-6, position = [0, 0, 0]) => {
+const addCharge = (value = 1, position = [0, 0, 0]) => {
   console.log('Adding charge', value, position)
   // TODO: Add support to color auto
   const chargeID = nextChargeID++
