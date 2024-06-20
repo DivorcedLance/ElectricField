@@ -165,7 +165,7 @@ function calcularLineasCampo3D(
   puntosIniciales,
   cargaOrigen,
   paso = 0.01,
-  maxIteraciones = 1000
+  maxIteraciones = 8000
 ) {
   const lineasCampo = []
   const direccion = cargas[cargaOrigen][0] > 0 ? 1 : -1
