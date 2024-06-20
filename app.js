@@ -350,7 +350,6 @@ function updateCharge(chargeID) {
 
 const chargeInputsContainer = document.getElementById('chargeInputsContainer')
 const addCharge = (value = 1, position = [0, 0, 0]) => {
-  console.log('Adding charge', value, position)
   // TODO: Add support to color auto
   const chargeID = nextChargeID++
   const chargeDiv = document.createElement('div')
@@ -402,7 +401,15 @@ const addCharge = (value = 1, position = [0, 0, 0]) => {
 initialCharges.forEach((charge) => addCharge(charge[0], charge[1]))
 
 const addChargeBtn = document.getElementById('addChargeBtn')
-addChargeBtn.addEventListener('click', () => addCharge())
+addChargeBtn.addEventListener('click', () => {
+  const value = parseFloat(Math.random() * 2 - 1).toFixed(1)
+  const randomPosition = [
+    parseInt(Math.random() * 10 - 5),
+    parseInt(Math.random() * 10 - 5),
+    parseInt(Math.random() * 10 - 5),
+  ]
+  addCharge(value, randomPosition)
+})
 
 const menuDiv = document.getElementById('menuDiv')
 const hideFormBtn = document.getElementById('hideFormBtn')
