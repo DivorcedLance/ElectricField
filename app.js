@@ -4,40 +4,21 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 // Constantes
 const k = 8.99e9 // Constante de Coulomb en N·m²/C²
 
-// Valores de las cargas y sus posiciones
-
-let cargas = [
-  [1e-6, [0, 0, 0]],
-  [-1e-6, [2, 0, 0]],
-  [-1e-6, [0, 2, 2]],
-  [1e-6, [2, 2, 6]],
-  [-1e-6, [1, 1, -1]],
-  [1e-6, [1, 1, 1]],
-  [-1e-6, [1, 1, 3]],
-]
+let nextChargeID = 0
+let cargas = []
 
 let numPuntos2D = 6
 let numPlanos = 6
-let numFlechas = 0
+let numFlechas = 2
 
-let COLORS = {
-  carga1: 0x0000ff,
-  carga2: 0xff0000,
-  curves: 0x00ff00,
+const COLORS = {
+  positiveCharge: 0x0000ff,
+  negativeCharge: 0xff0000,
 }
 
 const COLORS_LIST = [
-  0x0000ff,
-  0xff0000,
-  0x00ff00,
-  0xffff00,
-  0xff00ff,
-  0x00ffff,
-  0xff8000,
-  0x8000ff,
-  0x00ff80,
-  0x80ff00,
-  0xff0080,
+  0x0000ff, 0xff0000, 0x00ff00, 0xffff00, 0xff00ff, 0x00ffff, 0xff8000,
+  0x8000ff, 0x00ff80, 0x80ff00, 0xff0080,
 ]
 
 // Escena, cámara y renderizador
@@ -63,11 +44,10 @@ function createSphere(position, radius, color) {
 }
 
 function createCharge(cargaNum, radius) {
-  const color = cargas[cargaNum][0] > 0 ? COLORS.carga1 : COLORS.carga2
+  const color = cargas[cargaNum][0] > 0 ? COLORS.positiveCharge : COLORS.negativeCharge
   const position = cargas[cargaNum][1]
   createSphere(position, radius, color)
 }
-
 
 // Función para crear una curva
 function createCurve(color, controlPoints) {
@@ -89,39 +69,39 @@ function createCurve(color, controlPoints) {
 // Función para calcular el campo eléctrico en un punto dado por varias cargas
 function calcularCampo(punto, cargas) {
   // Inicializar el campo eléctrico en el punto como un vector de dos componentes [Ex, Ey]
-  let campo = [0, 0, 0];
+  let campo = [0, 0, 0]
 
   // Iterar sobre cada carga en la lista de cargas
   for (const carga of cargas) {
     // Descomponer la carga en su magnitud q y su posición [rx, ry]
-    const [q, r] = carga;
-    const [x, y, z] = punto;
-    const [rx, ry, rz] = r;
+    const [q, r] = carga
+    const [x, y, z] = punto
+    const [rx, ry, rz] = r
 
     // Calcular las diferencias de posición entre el punto y la carga
-    const dx = x - rx;
-    const dy = y - ry;
-    const dz = z - rz;
+    const dx = x - rx
+    const dy = y - ry
+    const dz = z - rz
 
     // Calcular la distancia al cuadrado entre el punto y la carga
-    const r2 = dx * dx + dy * dy + dz * dz;
+    const r2 = dx * dx + dy * dy + dz * dz
 
     // Calcular el campo eléctrico en 3d en el punto debido a la carga
-    const E = k * q / r2;
+    const E = (k * q) / r2
 
     // Calcular las componentes del campo eléctrico en el punto debido a la carga
-    const Ex = E * dx / Math.sqrt(r2);
-    const Ey = E * dy / Math.sqrt(r2);
-    const Ez = E * dz / Math.sqrt(r2);
+    const Ex = (E * dx) / Math.sqrt(r2)
+    const Ey = (E * dy) / Math.sqrt(r2)
+    const Ez = (E * dz) / Math.sqrt(r2)
 
     // Sumar las componentes del campo eléctrico en el punto
-    campo[0] += Ex;
-    campo[1] += Ey;
-    campo[2] += Ez;
+    campo[0] += Ex
+    campo[1] += Ey
+    campo[2] += Ez
   }
 
   // Devolver el campo eléctrico total en el punto
-  return campo;
+  return campo
 }
 
 function distancia(p1, p2) {
@@ -138,7 +118,7 @@ function calcularTrayectoria(
   direccion = 1,
   cargaOrigen,
   paso = 0.01,
-  maxIteraciones = 1000,
+  maxIteraciones = 1000
 ) {
   let trayectoria = [puntoInicial]
   let punto = puntoInicial
@@ -147,13 +127,19 @@ function calcularTrayectoria(
 
   for (let _ = 0; _ < maxIteraciones; _++) {
     const campo = calcularCampo(punto, cargas)
-    const magnitud = Math.sqrt(campo[0] * campo[0] + campo[1] * campo[1] + campo[2] * campo[2])
+    const magnitud = Math.sqrt(
+      campo[0] * campo[0] + campo[1] * campo[1] + campo[2] * campo[2]
+    )
     const pasoNormalizado = [
       (campo[0] / magnitud) * paso * direccion,
       (campo[1] / magnitud) * paso * direccion,
       (campo[2] / magnitud) * paso * direccion,
     ]
-    punto = [punto[0] + pasoNormalizado[0], punto[1] + pasoNormalizado[1], punto[2] + pasoNormalizado[2]]
+    punto = [
+      punto[0] + pasoNormalizado[0],
+      punto[1] + pasoNormalizado[1],
+      punto[2] + pasoNormalizado[2],
+    ]
     trayectoria.push(punto)
 
     for (let j = 0; j < cargas.length; j++) {
@@ -200,26 +186,39 @@ function calcularLineasCampo3D(
 
 // Función para agregar flechas a la trayectoria
 function addArrowsToTrajectory(trayectoria, color, numFlechas, direccion) {
-  const arrowSize = 0.2;
-  const headLength = 0.2;
-  const headWidth = 0.1;
-  const arrowHelperObjects = [];
-  const interval = Math.floor(trayectoria.length / numFlechas + 1);
+  const arrowSize = 0.2
+  const headLength = 0.2
+  const headWidth = 0.1
+  const arrowHelperObjects = []
+  const interval = Math.floor(trayectoria.length / numFlechas + 1)
 
-  for (let i = interval; i < trayectoria.length - 1 && arrowHelperObjects.length < numFlechas; i += interval) {
-    const startPoint = new THREE.Vector3(...trayectoria[i]);
-    const endPoint = new THREE.Vector3(...trayectoria[i + 1]);
-    const direction = new THREE.Vector3().subVectors(
-      direccion == 1 ? endPoint : startPoint,
-      direccion == 1 ? startPoint : endPoint
-    ).normalize();
+  for (
+    let i = interval;
+    i < trayectoria.length - 1 && arrowHelperObjects.length < numFlechas;
+    i += interval
+  ) {
+    const startPoint = new THREE.Vector3(...trayectoria[i])
+    const endPoint = new THREE.Vector3(...trayectoria[i + 1])
+    const direction = new THREE.Vector3()
+      .subVectors(
+        direccion == 1 ? endPoint : startPoint,
+        direccion == 1 ? startPoint : endPoint
+      )
+      .normalize()
     if (numFlechas !== 0) {
-      const arrowHelper = new THREE.ArrowHelper(direction, startPoint, arrowSize, color, headLength, headWidth);
-      arrowHelperObjects.push(arrowHelper);
+      const arrowHelper = new THREE.ArrowHelper(
+        direction,
+        startPoint,
+        arrowSize,
+        color,
+        headLength,
+        headWidth
+      )
+      arrowHelperObjects.push(arrowHelper)
     }
   }
 
-  return arrowHelperObjects;
+  return arrowHelperObjects
 }
 
 function updateScene() {
@@ -254,20 +253,28 @@ function updateScene() {
       createSphere(punto, 0.01, 0xffffff)
     }
 
-    lineasCampo3D.push([calcularLineasCampo3D(cargas, puntosIniciales, j), cargas[j][0] > 0 ? 1 : -1])
+    lineasCampo3D.push([
+      calcularLineasCampo3D(cargas, puntosIniciales, j),
+      cargas[j][0] > 0 ? 1 : -1,
+    ])
   }
 
   // Crear curvas usando la función createCurve y agregar flechas
   for (let i = 0; i < lineasCampo3D.length; i++) {
-    const controlPointsList = lineasCampo3D[i][0];
-    const direccion = lineasCampo3D[i][1];
-    const color = COLORS_LIST[i % COLORS_LIST.length];
+    const controlPointsList = lineasCampo3D[i][0]
+    const direccion = lineasCampo3D[i][1]
+    const color = COLORS_LIST[i % COLORS_LIST.length]
     for (const controlPoints of controlPointsList) {
-      const curva = createCurve(color, controlPoints);
-      scene.add(curva);
+      const curva = createCurve(color, controlPoints)
+      scene.add(curva)
 
-      const arrowHelpers = addArrowsToTrajectory(controlPoints, COLORS.curves, numFlechas, direccion);
-      arrowHelpers.forEach(arrowHelper => scene.add(arrowHelper));
+      const arrowHelpers = addArrowsToTrajectory(
+        controlPoints,
+        color,
+        numFlechas,
+        direccion
+      )
+      arrowHelpers.forEach((arrowHelper) => scene.add(arrowHelper))
     }
   }
 }
@@ -303,32 +310,105 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix()
 })
 
-// Formulario para actualizar los valores
-const configForm = document.getElementById('configForm');
-configForm.addEventListener('submit', (event) => {
-  event.preventDefault();
+const chargeInputsContainer = document.getElementById('chargeInputsContainer')
+const numPuntos2DInput = document.getElementById('numPuntos2D')
+const numPlanosInput = document.getElementById('numPlanos')
+const numFlechasInput = document.getElementById('numFlechas')
 
-  // Actualizar colores
-  COLORS.carga1 = parseInt(document.getElementById('carga1Color').value.substring(1), 16);
-  COLORS.carga2 = parseInt(document.getElementById('carga2Color').value.substring(1), 16);
-  COLORS.curves = parseInt(document.getElementById('curvesColor').value.substring(1), 16);
+numPuntos2DInput.value = numPuntos2D
+numPlanosInput.value = numPlanos
+numFlechasInput.value = numFlechas
 
-  // Actualizar cargas y posiciones
+function updateCharge(chargeID) {
+  const chargeDiv = document.getElementById(`chargeDiv${chargeID}`)
+  const cargaInput = chargeDiv.getElementsByClassName('cargaInput')[0]
+  const positionInputs = chargeDiv.getElementsByClassName('positionInput')
+  const position = [
+    parseFloat(positionInputs[0].value),
+    parseFloat(positionInputs[1].value),
+    parseFloat(positionInputs[2].value),
+  ]
+  const carga = parseFloat(cargaInput.value)
+  cargas[chargeID] = [carga, position, chargeID]
+  updateScene()
+}
 
-  // Actualizar número de puntos y ángulos
-  numPuntos2D = parseInt(document.getElementById('numPuntos2D').value);
-  numPlanos = parseInt(document.getElementById('numPlanos').value);
-  numFlechas = parseInt(document.getElementById('numFlechas').value);
+function updateNumPuntos2D() {
+  numPuntos2D = parseInt(numPuntos2DInput.value)
+  updateScene()
+}
 
-  // Actualizar la escena
-  updateScene();
-});
+function updateNumPlanos() {
+  numPlanos = parseInt(numPlanosInput.value)
+  updateScene()
+}
+
+function updateNumFlechas() {
+  numFlechas = parseInt(numFlechasInput.value)
+  updateScene()
+}
+
+numPuntos2DInput.addEventListener('change', updateNumPuntos2D)
+numPlanosInput.addEventListener('change', updateNumPlanos)
+numFlechasInput.addEventListener('change', updateNumFlechas)
 
 const showFormBtn = document.getElementById('showFormBtn')
 showFormBtn.addEventListener('click', () => {
-  configForm.style.display = configForm.style.display === 'none' ? 'block' : 'none';
-  showFormBtn.textContent = configForm.style.display === 'none' ? 'Mostrar formulario' : 'Ocultar formulario';
+  configForm.style.display =
+    configForm.style.display === 'none' ? 'block' : 'none'
+  showFormBtn.textContent =
+    configForm.style.display === 'none'
+      ? 'Mostrar formulario'
+      : 'Ocultar formulario'
 })
 
+const addCharge = (value = 1, position = [0, 0, 0]) => {
+  // TODO: Add support to color auto
+  const chargeID = nextChargeID++
+  const chargeDiv = document.createElement('div')
+  chargeDiv.id = `chargeDiv${chargeID}`
+  chargeDiv.style.display = 'flex'
+  chargeDiv.style.flexDirection = 'row'
+
+  const cargaInput = document.createElement('input')
+  cargaInput.className = 'cargaInput'
+  cargaInput.type = 'number'
+  cargaInput.name = 'carga'
+  cargaInput.value = value
+  cargaInput.step = '0.1'
+  chargeDiv.appendChild(cargaInput)
+
+  const positionInputs = ['x', 'y', 'z']
+
+  for (let i = 0; i < positionInputs.length; i++) {
+    const positionInput = document.createElement('input')
+    positionInput.className = 'positionInput'
+    positionInput.type = 'number'
+    positionInput.name = positionInputs[i]
+    positionInput.value = position[i]
+    chargeDiv.appendChild(positionInput)
+  }
+
+  chargeDiv.addEventListener('change', () => updateCharge(chargeID))
+
+  const deleteBtn = document.createElement('button')
+  deleteBtn.type = 'button'
+  deleteBtn.className = 'deleteBtn'
+  deleteBtn.textContent = 'X'
+  deleteBtn.addEventListener('click', () => {
+    cargas = cargas.filter((carga) => carga[2] !== chargeID)
+    chargeDiv.remove()
+    updateScene()
+  })
+  chargeDiv.appendChild(deleteBtn)
+
+  cargas.push([1e-6, [0, 0, 0], chargeID])
+  chargeInputsContainer.appendChild(chargeDiv)
+  updateScene()
+}
+
+const addChargeBtn = document.getElementById('addChargeBtn')
+addChargeBtn.addEventListener('click', () => addCharge())
+
 // Inicializar la escena con los valores iniciales
-updateScene();
+updateScene()
