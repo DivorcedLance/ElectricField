@@ -5,11 +5,16 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 const k = 8.99e9 // Constante de Coulomb en N·m²/C²
 
 let nextChargeID = 0
-let cargas = []
+const initialCharges = [
+  [1, [-2, 2, 0]],
+  [-1, [2, 0, 0]],
+]
 
-let numPuntos2D = 6
-let numPlanos = 6
-let numFlechas = 2
+let charges = []
+
+let numPoints2D = 5
+let numPlanes = 5
+let numArrows = 1
 
 const COLORS = {
   positiveCharge: 0x0000ff,
@@ -43,9 +48,9 @@ function createSphere(position, radius, color) {
   scene.add(sphere)
 }
 
-function createCharge(cargaNum, radius) {
-  const color = cargas[cargaNum][0] > 0 ? COLORS.positiveCharge : COLORS.negativeCharge
-  const position = cargas[cargaNum][1]
+function createCharge(chargeIndex, radius) {
+  const color = charges[chargeIndex][0] > 0 ? COLORS.positiveCharge : COLORS.negativeCharge
+  const position = charges[chargeIndex][1]
   createSphere(position, radius, color)
 }
 
@@ -67,15 +72,15 @@ function createCurve(color, controlPoints) {
 }
 
 // Función para calcular el campo eléctrico en un punto dado por varias cargas
-function calcularCampo(punto, cargas) {
+function calculateElectricField(point, charges) {
   // Inicializar el campo eléctrico en el punto como un vector de dos componentes [Ex, Ey]
-  let campo = [0, 0, 0]
+  let electricField = [0, 0, 0]
 
   // Iterar sobre cada carga en la lista de cargas
-  for (const carga of cargas) {
+  for (const charge of charges) {
     // Descomponer la carga en su magnitud q y su posición [rx, ry]
-    const [q, r] = carga
-    const [x, y, z] = punto
+    const [q, r] = charge
+    const [x, y, z] = point
     const [rx, ry, rz] = r
 
     // Calcular las diferencias de posición entre el punto y la carga
@@ -87,7 +92,7 @@ function calcularCampo(punto, cargas) {
     const r2 = dx * dx + dy * dy + dz * dz
 
     // Calcular el campo eléctrico en 3d en el punto debido a la carga
-    const E = (k * q) / r2
+    const E = (k * q*1e-6) / r2
 
     // Calcular las componentes del campo eléctrico en el punto debido a la carga
     const Ex = (E * dx) / Math.sqrt(r2)
@@ -95,16 +100,16 @@ function calcularCampo(punto, cargas) {
     const Ez = (E * dz) / Math.sqrt(r2)
 
     // Sumar las componentes del campo eléctrico en el punto
-    campo[0] += Ex
-    campo[1] += Ey
-    campo[2] += Ez
+    electricField[0] += Ex
+    electricField[1] += Ey
+    electricField[2] += Ez
   }
 
   // Devolver el campo eléctrico total en el punto
-  return campo
+  return electricField
 }
 
-function distancia(p1, p2) {
+function calculateDistance(p1, p2) {
   const dx = p1[0] - p2[0]
   const dy = p1[1] - p2[1]
   const dz = p1[2] - p2[2]
@@ -112,7 +117,7 @@ function distancia(p1, p2) {
 }
 
 // Función para calcular la trayectoria de una línea de campo en una dirección
-function calcularTrayectoria(
+function calculateTrayectory(
   puntoInicial,
   cargas,
   direccion = 1,
@@ -126,7 +131,7 @@ function calcularTrayectoria(
   const yaAlcanzados = [cargaOrigen]
 
   for (let _ = 0; _ < maxIteraciones; _++) {
-    const campo = calcularCampo(punto, cargas)
+    const campo = calculateElectricField(punto, cargas)
     const magnitud = Math.sqrt(
       campo[0] * campo[0] + campo[1] * campo[1] + campo[2] * campo[2]
     )
@@ -147,7 +152,7 @@ function calcularTrayectoria(
         continue
       }
       const carga = cargas[j]
-      if (distancia(punto, carga[1]) < paso) {
+      if (calculateDistance(punto, carga[1]) < paso) {
         yaAlcanzados.push(j)
         if (yaAlcanzados.length === cargas.length) {
           return trayectoria
@@ -160,7 +165,7 @@ function calcularTrayectoria(
 }
 
 // Función para calcular múltiples líneas de campo en 3D en ambas direcciones
-function calcularLineasCampo3D(
+function calculateTrayectories(
   cargas,
   puntosIniciales,
   cargaOrigen,
@@ -171,7 +176,7 @@ function calcularLineasCampo3D(
   const direccion = cargas[cargaOrigen][0] > 0 ? 1 : -1
 
   for (const puntoInicial of puntosIniciales) {
-    const trayectoria = calcularTrayectoria(
+    const trayectoria = calculateTrayectory(
       puntoInicial,
       cargas,
       direccion,
@@ -228,34 +233,30 @@ function updateScene() {
   }
 
   // Crear esferas para representar las cargas
-  for (let i = 0; i < cargas.length; i++) {
+  for (let i = 0; i < charges.length; i++) {
     createCharge(i, 0.15)
   }
 
+  
   const lineasCampo3D = []
   // Puntos iniciales en un círculo alrededor de las cargas
   const radio = 0.1
-  for (let j = 0; j < cargas.length; j++) {
+  for (let j = 0; j < charges.length; j++) {
     const puntosIniciales = []
-    for (let i = 0; i < numPuntos2D; i++) {
-      for (let k = 0; k < numPlanos; k++) {
-        const theta = (i / numPuntos2D) * 2 * Math.PI
-        const phi = (k / numPlanos) * Math.PI
-        const x = cargas[j][1][0] + radio * Math.sin(theta) * Math.cos(phi)
-        const y = cargas[j][1][1] + radio * Math.sin(theta) * Math.sin(phi)
-        const z = cargas[j][1][2] + radio * Math.cos(theta)
+    for (let i = 0; i < numPoints2D; i++) {
+      for (let k = 0; k < numPlanes; k++) {
+        const theta = (i / numPoints2D) * 2 * Math.PI
+        const phi = (k / numPlanes) * Math.PI
+        const x = charges[j][1][0] + radio * Math.sin(theta) * Math.cos(phi)
+        const y = charges[j][1][1] + radio * Math.sin(theta) * Math.sin(phi)
+        const z = charges[j][1][2] + radio * Math.cos(theta)
         puntosIniciales.push([x, y, z])
       }
     }
 
-    // Graficar puntos iniciales
-    for (const punto of puntosIniciales) {
-      createSphere(punto, 0.01, 0xffffff)
-    }
-
     lineasCampo3D.push([
-      calcularLineasCampo3D(cargas, puntosIniciales, j),
-      cargas[j][0] > 0 ? 1 : -1,
+      calculateTrayectories(charges, puntosIniciales, j),
+      charges[j][0] > 0 ? 1 : -1,
     ])
   }
 
@@ -271,7 +272,7 @@ function updateScene() {
       const arrowHelpers = addArrowsToTrajectory(
         controlPoints,
         color,
-        numFlechas,
+        numArrows,
         direccion
       )
       arrowHelpers.forEach((arrowHelper) => scene.add(arrowHelper))
@@ -295,13 +296,9 @@ controls.maxPolarAngle = Math.PI / 2
 // Animación
 function animate() {
   requestAnimationFrame(animate)
-
   controls.update() // Actualiza los controles
-
   renderer.render(scene, camera)
 }
-
-animate()
 
 // Ajustar el tamaño del renderizador cuando la ventana cambia de tamaño
 window.addEventListener('resize', () => {
@@ -310,14 +307,32 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix()
 })
 
-const chargeInputsContainer = document.getElementById('chargeInputsContainer')
 const numPuntos2DInput = document.getElementById('numPuntos2D')
 const numPlanosInput = document.getElementById('numPlanos')
 const numFlechasInput = document.getElementById('numFlechas')
 
-numPuntos2DInput.value = numPuntos2D
-numPlanosInput.value = numPlanos
-numFlechasInput.value = numFlechas
+function updateNumPuntos2D() {
+  numPoints2D = parseInt(numPuntos2DInput.value)
+  updateScene()
+}
+
+function updateNumPlanos() {
+  numPlanes = parseInt(numPlanosInput.value)
+  updateScene()
+}
+
+function updateNumFlechas() {
+  numArrows = parseInt(numFlechasInput.value)
+  updateScene()
+}
+
+numPuntos2DInput.addEventListener('change', updateNumPuntos2D)
+numPlanosInput.addEventListener('change', updateNumPlanos)
+numFlechasInput.addEventListener('change', updateNumFlechas)
+
+numPuntos2DInput.value = numPoints2D
+numPlanosInput.value = numPlanes
+numFlechasInput.value = numArrows
 
 function updateCharge(chargeID) {
   const chargeDiv = document.getElementById(`chargeDiv${chargeID}`)
@@ -329,40 +344,13 @@ function updateCharge(chargeID) {
     parseFloat(positionInputs[2].value),
   ]
   const carga = parseFloat(cargaInput.value)
-  cargas[chargeID] = [carga, position, chargeID]
+  charges[chargeID] = [carga, position, chargeID]
   updateScene()
 }
 
-function updateNumPuntos2D() {
-  numPuntos2D = parseInt(numPuntos2DInput.value)
-  updateScene()
-}
-
-function updateNumPlanos() {
-  numPlanos = parseInt(numPlanosInput.value)
-  updateScene()
-}
-
-function updateNumFlechas() {
-  numFlechas = parseInt(numFlechasInput.value)
-  updateScene()
-}
-
-numPuntos2DInput.addEventListener('change', updateNumPuntos2D)
-numPlanosInput.addEventListener('change', updateNumPlanos)
-numFlechasInput.addEventListener('change', updateNumFlechas)
-
-const showFormBtn = document.getElementById('showFormBtn')
-showFormBtn.addEventListener('click', () => {
-  configForm.style.display =
-    configForm.style.display === 'none' ? 'block' : 'none'
-  showFormBtn.textContent =
-    configForm.style.display === 'none'
-      ? 'Mostrar formulario'
-      : 'Ocultar formulario'
-})
-
-const addCharge = (value = 1, position = [0, 0, 0]) => {
+const chargeInputsContainer = document.getElementById('chargeInputsContainer')
+const addCharge = (value = 1e-6, position = [0, 0, 0]) => {
+  console.log('Adding charge', value, position)
   // TODO: Add support to color auto
   const chargeID = nextChargeID++
   const chargeDiv = document.createElement('div')
@@ -376,7 +364,10 @@ const addCharge = (value = 1, position = [0, 0, 0]) => {
   cargaInput.name = 'carga'
   cargaInput.value = value
   cargaInput.step = '0.1'
+  cargaInput.addEventListener('change', () => updateCharge(chargeID))
   chargeDiv.appendChild(cargaInput)
+
+  chargeDiv.appendChild(document.createElement('hr'))
 
   const positionInputs = ['x', 'y', 'z']
 
@@ -386,29 +377,47 @@ const addCharge = (value = 1, position = [0, 0, 0]) => {
     positionInput.type = 'number'
     positionInput.name = positionInputs[i]
     positionInput.value = position[i]
+    positionInput.addEventListener('change', () => updateCharge(chargeID))
     chargeDiv.appendChild(positionInput)
   }
 
-  chargeDiv.addEventListener('change', () => updateCharge(chargeID))
+  charges.push([value, position, chargeID])
 
   const deleteBtn = document.createElement('button')
   deleteBtn.type = 'button'
   deleteBtn.className = 'deleteBtn'
   deleteBtn.textContent = 'X'
+  deleteBtn.style.width = '30px'
   deleteBtn.addEventListener('click', () => {
-    cargas = cargas.filter((carga) => carga[2] !== chargeID)
+    charges = charges.filter((carga) => carga[2] !== chargeID)
     chargeDiv.remove()
     updateScene()
   })
   chargeDiv.appendChild(deleteBtn)
 
-  cargas.push([1e-6, [0, 0, 0], chargeID])
   chargeInputsContainer.appendChild(chargeDiv)
   updateScene()
 }
 
+initialCharges.forEach((charge) => addCharge(charge[0], charge[1]))
+
 const addChargeBtn = document.getElementById('addChargeBtn')
 addChargeBtn.addEventListener('click', () => addCharge())
 
+const menuDiv = document.getElementById('menuDiv')
+const hideFormBtn = document.getElementById('hideFormBtn')
+hideFormBtn.addEventListener('click', () => {
+  menuDiv.style.display = 'none'
+  showFormBtn.style.display = 'block'
+})
+
+const showFormBtn = document.getElementById('showFormBtn')
+showFormBtn.addEventListener('click', () => {
+  menuDiv.style.display = 'block'
+  showFormBtn.style.display = 'none'
+})
+
 // Inicializar la escena con los valores iniciales
+
+animate()
 updateScene()
