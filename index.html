@@ -7,13 +7,14 @@
     <style>
         body { margin: 0; }
         canvas { display: block; }
-        #menu {
+        #menuDiv {
             position: absolute;
             top: 10px;
-            left: 10px;
+            right: 10px;
             background: rgba(255, 255, 255, 0.8);
             padding: 10px;
             border-radius: 5px;
+            display: none;
         }
         .positionInput {
             width: 50px;
@@ -21,30 +22,56 @@
         .cargaInput {
             width: 50px;
         }
+        .menuBtn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+        .inputHead {
+            width: 50px;
+            text-align: center;
+            padding: 3px;
+        }
+        .w-50 {
+            width: 50px;
+        }
+        .w-30 {
+            width: 30px;
+        }
     </style>
-  <script type="module" crossorigin src="/ElectricField/assets/index-CJpOhBjO.js"></script>
+  <script type="module" crossorigin src="/ElectricField/assets/index-iXVmd_EN.js"></script>
 </head>
 <body>
-    <div id="menu">
-        <div style="display: flex; flex-direction: row;">
-            <h3>Electric Field</h3>
-            <button id="showFormBtn">Mostrar Menú</button>
-        </div>
+    <div style="position: absolute; top: 20px; right: 20px; display: flex; flex-direction: row-reverse; width: 100vw;">
+        <button class="menuBtn" id="showFormBtn">-</button>
+    </div>
+    <div id="menuDiv">
+        <div id="configForm" style="display: flex; flex-direction: column;">
+            <button class="menuBtn" id="hideFormBtn" style="align-self: flex-end;">X</button>
+            <h2 style="position: absolute; top: 0%;">Menú</h2>
 
-        <div id="configForm">
+            <br>
+            <div style="display: flex; ">
+                <div class="inputHead w-50">Q</div>
+                <hr>
+                <div class="inputHead w-50">x</div>
+                <div class="inputHead w-50">y</div>
+                <div class="inputHead w-50">z</div>
+                <div class="inputHead w-30"></div>
+            </div>
             <div id="chargeInputsContainer" style="display: flex; flex-direction: column;">
             </div>
 
-            <button type="button" id="addChargeBtn">Agregar Carga</button><br><br>
+            <button style="height: 30px;" type="button" id="addChargeBtn">Agregar Carga</button><br>
             
             <label for="numPuntos2D">Número de Lineas 2D:</label>
-            <input type="range" id="numPuntos2D" name="numPuntos2D" value="1" min="1" max="10"><br><br>
+            <input type="range" id="numPuntos2D" name="numPuntos2D" value="1" min="1" max="10">
             
             <label for="numPlanos">Número de Planos:</label>
-            <input type="range" id="numPlanos" name="numPlanos" value="1" min="1" max="10"><br><br>
+            <input type="range" id="numPlanos" name="numPlanos" value="1" min="1" max="10">
 
             <label for="numFlechas">Número de Flechas:</label>
-            <input type="range" id="numFlechas" name="numFlechas" value="1" min="1" max="10"><br><br>
+            <input type="range" id="numFlechas" name="numFlechas" value="1" min="1" max="10">
         </div>
     </div>
     <canvas id="bg"></canvas>
